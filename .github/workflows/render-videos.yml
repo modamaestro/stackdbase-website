@@ -1,0 +1,119 @@
+name: Render HauteMotion Videos
+
+on:
+  push:
+    branches:
+      - main
+      - claude/hautemotion-report-izdttp
+    paths:
+      - "HauteMotion/**"
+  workflow_dispatch:
+    inputs:
+      composition:
+        description: "Which composition to render (leave blank for all)"
+        required: false
+        default: "all"
+        type: choice
+        options:
+          - all
+          - WhatIsHauteApp
+          - AppAd
+          - ExplainerVideo
+          - SocialReel
+
+jobs:
+  render:
+    name: Render ${{ github.event.inputs.composition || 'all' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: HauteMotion/package-lock.json
+
+      - name: Install dependencies
+        working-directory: HauteMotion
+        run: npm ci
+
+      - name: Install Chrome system libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libnss3 libatk1.0-0t64 libatk-bridge2.0-0t64 \
+            libcups2t64 libdrm2 libxkbcommon0 libxcomposite1 \
+            libxdamage1 libxfixes3 libxrandr2 libgbm1 \
+            libpango-1.0-0 libcairo2 libasound2t64 \
+            libx11-xcb1 libxcb-dri3-0 fonts-liberation \
+            --no-install-recommends
+
+      - name: Download Remotion browser
+        working-directory: HauteMotion
+        run: npx remotion browser ensure
+
+      - name: Create output directory
+        run: mkdir -p HauteMotion/out
+
+      # ── Render: WhatIsHauteApp (20s · 9:16) ────────────────────────────
+      - name: Render WhatIsHauteApp
+        if: ${{ github.event.inputs.composition == 'all' || github.event.inputs.composition == 'WhatIsHauteApp' || github.event.inputs.composition == '' }}
+        working-directory: HauteMotion
+        run: |
+          npx remotion render remotion/index.ts WhatIsHauteApp out/WhatIsHauteApp.mp4 \
+            --concurrency=1 \
+            --gl=swiftshader \
+            --log=verbose
+        env:
+          REMOTION_CHROME_FLAGS: "--no-sandbox --disable-setuid-sandbox"
+
+      # ── Render: AppAd (7s · 16:9) ──────────────────────────────────────
+      - name: Render AppAd
+        if: ${{ github.event.inputs.composition == 'all' || github.event.inputs.composition == 'AppAd' || github.event.inputs.composition == '' }}
+        working-directory: HauteMotion
+        run: |
+          npx remotion render remotion/index.ts AppAd out/AppAd.mp4 \
+            --concurrency=1 \
+            --gl=swiftshader \
+            --log=verbose
+        env:
+          REMOTION_CHROME_FLAGS: "--no-sandbox --disable-setuid-sandbox"
+
+      # ── Render: ExplainerVideo (10s · 16:9) ───────────────────────────
+      - name: Render ExplainerVideo
+        if: ${{ github.event.inputs.composition == 'all' || github.event.inputs.composition == 'ExplainerVideo' || github.event.inputs.composition == '' }}
+        working-directory: HauteMotion
+        run: |
+          npx remotion render remotion/index.ts ExplainerVideo out/ExplainerVideo.mp4 \
+            --concurrency=1 \
+            --gl=swiftshader \
+            --log=verbose
+        env:
+          REMOTION_CHROME_FLAGS: "--no-sandbox --disable-setuid-sandbox"
+
+      # ── Render: SocialReel (6s · 9:16) ────────────────────────────────
+      - name: Render SocialReel
+        if: ${{ github.event.inputs.composition == 'all' || github.event.inputs.composition == 'SocialReel' || github.event.inputs.composition == '' }}
+        working-directory: HauteMotion
+        run: |
+          npx remotion render remotion/index.ts SocialReel out/SocialReel.mp4 \
+            --concurrency=1 \
+            --gl=swiftshader \
+            --log=verbose
+        env:
+          REMOTION_CHROME_FLAGS: "--no-sandbox --disable-setuid-sandbox"
+
+      # ── Upload all rendered videos as a single downloadable artifact ───
+      - name: Upload rendered videos
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hautemotion-videos-${{ github.run_number }}
+          path: HauteMotion/out/*.mp4
+          retention-days: 30
+          if-no-files-found: warn
