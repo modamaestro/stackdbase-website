@@ -1,0 +1,38 @@
+{
+  "name": "hautemotion",
+  "version": "1.0.0",
+  "description": "Professional motion graphics studio built on Remotion",
+  "main": "remotion/index.ts",
+  "scripts": {
+    "studio": "remotion studio remotion/index.ts",
+    "render:app-ad": "remotion render remotion/index.ts AppAd out/AppAd.mp4",
+    "render:explainer": "remotion render remotion/index.ts ExplainerVideo out/ExplainerVideo.mp4",
+    "render:reel": "remotion render remotion/index.ts SocialReel out/SocialReel.mp4",
+    "render:all": "npm run render:app-ad && npm run render:explainer && npm run render:reel",
+    "preview": "remotion studio remotion/index.ts",
+    "upgrade": "remotion upgrade"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@remotion/animation-utils": "4.0.475",
+    "@remotion/cli": "4.0.475",
+    "@remotion/gif": "4.0.475",
+    "@remotion/google-fonts": "4.0.475",
+    "@remotion/motion-blur": "4.0.475",
+    "@remotion/noise": "4.0.475",
+    "@remotion/paths": "4.0.475",
+    "@remotion/player": "4.0.475",
+    "@remotion/shapes": "4.0.475",
+    "@remotion/transitions": "4.0.475",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "remotion": "4.0.475"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^6.0.3"
+  }
+}
